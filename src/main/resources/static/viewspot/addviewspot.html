@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        form{
+            width:300px;
+        }
+        input{
+            width: 64%;
+            background: #eee;
+        }
+        input:focus{
+            background: #fff;
+        }
+        form{
+            padding: 0 12px 12px;
+        }
+        label{
+            display: block;
+            padding-bottom:12px;
+        }
+        .label-text{
+            width: 36%;
+            float: left;
+        }
+        .label-textarea{
+            width: 60%;
+            float: left;
+            height: 60px;
+        }
+        #upload-tip{
+            border: 1px dashed #d9d9d9;
+            width: 135px;
+            height: 135px;
+            line-height: 135px;
+            cursor: pointer;
+            font-size: 36px;
+            color:#d9d9d9;
+        }
+        #img-show{
+            width: 135px;
+            height: 135px;
+            display: block;
+            margin: 0 auto;
+            object-fit: cover;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="wrap">
+        <div id="header">
+            <div style="float: right;padding-top: 24px">2021/11/20</div>
+            <h1>旅游信息管理系统</h1>
+        </div>
+        <div id="header-bar"></div>
+        <div id="content" style="height: 440px">
+            <img src="../img/timg.jpg" style="float: right;height: 320px">
+            <h2>添加景点</h2>
+            <form action="viewspotlist.html" method="post">
+                <label>
+                    <div class="label-text">景&emsp;&emsp;点：</div>
+                    <input type="text" v-model="attractions.name">
+                </label>
+                <label>
+                    <div class="label-text">意向图片：</div>
+                    <input type="file"   ref="myPhoto"/>
+                </label>
+                <label>
+                    <div class="label-text">旺季时间：</div>
+                    <input type="date" v-model="attractions.hottime">
+                </label>
+                <label>
+                    <div class="label-text">旺季门票：</div>
+                    <input type="text" v-model="attractions.hotticket">
+                </label>
+                <label>
+                    <div class="label-text">淡季门票：</div>
+                    <input type="text" v-model="attractions.dimticket">
+                </label>
+                <label>
+                    <div class="label-text">介绍：</div>
+                    <textarea v-model="attractions.placedes" ></textarea>
+                </label>
+                <label>
+                    <div class="label-text">所属省份：</div>
+                    <select name="ofprovince" v-model="attractions.proviceid" disabled>
+                        <option value="1">北京市</option>
+                        <option value="2">山东省</option>
+                        <option value="3">河南省</option>
+                        <option value="4">辽宁省</option>
+                        <option value="6">江西省</option>
+                        <option value="7">贵州省</option>
+                    </select>
+                </label>
+                <button type="button" @click="addAtt">提 交</button>&emsp;
+                <a :href="'viewspotlist.html?proviceid='+this.attractions.proviceid">返回</a>
+            </form>
+        </div>
+        <div id="footer">
+            ABC@126.com
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/vue.js" ></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    const vue = new Vue({
+        el: "#wrap",
+        data() {
+            return {
+                attractions: {},
+                totalPage: "",
+                // proviceid: ""
+            }
+        },
+        methods:{
+            addAtt(){
+                const formData = new FormData();
+                // formData.append("id",this.attractions.id);
+                formData.append("name",this.attractions.name);
+                formData.append("hottime",this.attractions.hottime);
+                formData.append("picpath",this.attractions.picpath);
+                formData.append("hotticket",this.attractions.hotticket);
+                formData.append("dimticket",this.attractions.dimticket);
+                formData.append("placedes",this.attractions.placedes);
+                formData.append("proviceid",this.attractions.proviceid);
+                formData.append("photo",this.$refs.myPhoto.files[0]);
+                axios({
+                    method: "post",
+                    url: "http://localhost:8081/attractions/saveEdit",
+                    data: formData,
+                    headers: {
+                        'content-type':'multipart/form-data'
+                    }
+                }).then(res => {
+
+                    if (res.data.status) {
+                        this.getTotalPage()
+                    } else {
+                        alert(res.data.msg)
+                    }
+                })
+               
+            },
+            getTotalPage(){
+                axios.get("http://localhost:8081/attractions/getTotalPage?proviceid="+this.attractions.proviceid).then(
+                    res => {
+                        this.totalPage = res.data.totalPage
+                        location.href = "http://localhost:8081/viewspot/viewspotlist.html?proviceid="+this.attractions.proviceid+"&totalPage="+this.totalPage
+
+                    }
+                )
+            }
+
+        },
+        created() {
+            this.attractions = {}
+            const strings = location.href.split("?")[1].split("&")
+            this.attractions.proviceid = strings[0].split("=")[1]
+            this.totalPage = strings[1].split("=")[1]
+            console.log(this.totalPage)
+            
+        }
+    })
+</script>

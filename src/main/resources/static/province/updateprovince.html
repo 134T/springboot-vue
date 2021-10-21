@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        form{
+            width:270px;
+        }
+        input{
+            width: 70%;
+            background: #eee;
+        }
+        input:focus{
+            background: #fff;
+        }
+        form{
+            padding: 0 12px 12px;
+        }
+        label{
+            display: block;
+            padding-bottom:12px;
+        }
+        .label-text{
+            width: 30%;
+            float: left;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <div id="header">
+            <div style="float: right;padding-top: 24px">2021/11/20</div>
+            <h1>旅游信息管理系统</h1>
+        </div>
+        <div id="header-bar"></div>
+        <div id="content" style="height: 360px">
+            <img src="../img/timg.jpg" style="float: right;height: 320px">
+            <h2>修改省份</h2>
+            <form action="provincelist.html" method="post">
+                <label>
+                    <div class="label-text">省&emsp;份：</div>
+                    <input type="text" v-model="provice.name" value="北京市">
+                </label>
+                <label>
+                    <div class="label-text">标&emsp;签：</div>
+                    <input type="text" v-model="provice.tags" value="首都、天安门">
+                </label>
+                <label>
+                    <div class="label-text">景点数：</div>
+                    <input type="text" v-model="provice.placecounts">
+                </label>
+                <button type="button" @click="updateProvice(provice)">提 交</button>&emsp;
+                <a :href="'provincelist.html?currentpage='+currentPage">返回</a>
+            </form>
+        </div>
+        <div id="footer">
+            ABC@126.com
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/vue.js" ></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    const vue = new Vue({
+        el: "#wrap",
+        data() {
+            return {
+                provice: {},
+                id: "",
+                currentPage: ""
+            }
+        },
+        methods: {
+            updateProvice(val){
+                axios.post("http://localhost:8081/province/updateProvince",val).then(
+                    res => {
+                        if (res.data.status){
+                            location.href = "http://localhost:8081/province/provincelist.html?currentpage="+this.currentPage
+                        }else {
+                            alert(res.data.msg)
+                        }
+                    }
+                )
+            }
+            
+        },
+        created(){
+            const strings = location.href.split("?")[1];
+            const strings1 = strings.split("&");
+            this.id = strings1[0].split("=")[1];
+            this.currentPage = strings1[1].split("=")[1];
+            
+
+            axios.get("http://localhost:8081/province/getById?id="+this.id).then(
+                res => {
+                    this.provice = res.data.provice
+
+                }
+
+            )
+        }
+    })
+</script>
